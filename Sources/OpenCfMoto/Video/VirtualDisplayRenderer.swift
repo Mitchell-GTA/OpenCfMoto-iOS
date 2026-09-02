@@ -25,7 +25,7 @@ public final class VirtualDisplayRenderer {
         ]
 
         let pixelBufferAttributes: [String: Any] = [
-            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
+            kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA),
             kCVPixelBufferWidthKey as String: width,
             kCVPixelBufferHeightKey as String: height,
             kCVPixelBufferIOSurfacePropertiesKey as String: [:]
@@ -71,7 +71,7 @@ public final class VirtualDisplayRenderer {
             bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
         ) else { return nil }
 
-        // Flip coordinates for iOS standard top-left origin
+        // Flip coordinates for standard top-left origin
         context.translateBy(x: 0, y: CGFloat(height))
         context.scaleBy(x: 1.0, y: -1.0)
 
@@ -79,7 +79,7 @@ public final class VirtualDisplayRenderer {
         context.setFillColor(CGColor(red: 0.07, green: 0.08, blue: 0.11, alpha: 1.0))
         context.fill(CGRect(x: 0, y: 0, width: width, height: height))
 
-        #if canImport(UIKit)
+        #if os(iOS)
         UIGraphicsPushContext(context)
 
         // 2. Navigation Top Banner (Turn-by-turn)

@@ -4,9 +4,6 @@
 import Foundation
 import CoreLocation
 import Combine
-#if canImport(AVFoundation)
-import AVFoundation
-#endif
 
 public final class DashHUDViewModel: NSObject, ObservableObject, CLLocationManagerDelegate, PxcServerDelegate {
     @Published public var isConnected = false
@@ -48,8 +45,10 @@ public final class DashHUDViewModel: NSObject, ObservableObject, CLLocationManag
     private func setupLocationManager() {
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
+        #if os(iOS)
         locationManager.allowsBackgroundLocationUpdates = true
         locationManager.pausesLocationUpdatesAutomatically = false
+        #endif
         locationManager.requestAlwaysAuthorization()
     }
 
@@ -63,7 +62,9 @@ public final class DashHUDViewModel: NSObject, ObservableObject, CLLocationManag
         encoder.start()
         pxcServer.start(bikeGatewayIp: gatewayIp)
         locationManager.startUpdatingLocation()
+        #if os(iOS)
         locationManager.startUpdatingHeading()
+        #endif
 
         startRenderLoop()
     }
@@ -72,7 +73,9 @@ public final class DashHUDViewModel: NSObject, ObservableObject, CLLocationManag
         renderTimer?.invalidate()
         renderTimer = nil
         locationManager.stopUpdatingLocation()
+        #if os(iOS)
         locationManager.stopUpdatingHeading()
+        #endif
         pxcServer.stop()
         encoder.stop()
         isStreaming = false
@@ -113,11 +116,13 @@ public final class DashHUDViewModel: NSObject, ObservableObject, CLLocationManag
         }
     }
 
+    #if os(iOS)
     public func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
         DispatchQueue.main.async {
             self.currentHeading = newHeading.trueHeading >= 0 ? newHeading.trueHeading : newHeading.magneticHeading
         }
     }
+    #endif
 
     // MARK: - PxcServerDelegate
 

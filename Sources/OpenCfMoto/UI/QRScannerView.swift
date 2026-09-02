@@ -29,19 +29,7 @@ public struct QRScannerView: View {
                 VStack(spacing: 20) {
                     // Camera / Scanner View
                     ZStack {
-                        #if targetEnvironment(simulator)
-                        VStack(spacing: 12) {
-                            Image(systemName: "camera.viewfinder")
-                                .font(.system(size: 60))
-                                .foregroundColor(.gray)
-                            Text("Simulador de iOS (Cámara no disponible)")
-                                .foregroundColor(.gray)
-                                .font(.subheadline)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: 320)
-                        .background(Color(red: 0.12, green: 0.14, blue: 0.18))
-                        .cornerRadius(20)
-                        #else
+                        #if os(iOS) && !targetEnvironment(simulator)
                         CameraPreview(scannedCode: $scannedCode)
                             .frame(maxWidth: .infinity, maxHeight: 320)
                             .cornerRadius(20)
@@ -49,6 +37,18 @@ public struct QRScannerView: View {
                                 RoundedRectangle(cornerRadius: 20)
                                     .stroke(Color.cyan, lineWidth: 3)
                             )
+                        #else
+                        VStack(spacing: 12) {
+                            Image(systemName: "camera.viewfinder")
+                                .font(.system(size: 60))
+                                .foregroundColor(.gray)
+                            Text("Simulador o macOS (Cámara no disponible)")
+                                .foregroundColor(.gray)
+                                .font(.subheadline)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: 320)
+                        .background(Color(red: 0.12, green: 0.14, blue: 0.18))
+                        .cornerRadius(20)
                         #endif
                     }
                     .padding(.horizontal)
@@ -178,7 +178,7 @@ public struct QRScannerView: View {
     private func connectAndFinish(data: QrData) {
         isConnectingWifi = true
 
-        #if canImport(NetworkExtension)
+        #if os(iOS) && canImport(NetworkExtension)
         let hotspotConfig = NEHotspotConfiguration(ssid: data.ssid, passphrase: data.pwd, isWEP: false)
         hotspotConfig.joinOnce = false
 
@@ -202,7 +202,7 @@ public struct QRScannerView: View {
     }
 }
 
-#if !targetEnvironment(simulator)
+#if os(iOS) && !targetEnvironment(simulator)
 struct CameraPreview: UIViewControllerRepresentable {
     @Binding var scannedCode: String
 

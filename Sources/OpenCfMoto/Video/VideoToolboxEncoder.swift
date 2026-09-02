@@ -81,7 +81,7 @@ public final class VideoToolboxEncoder {
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_AllowFrameReordering, value: kCFBooleanFalse)
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_AverageBitRate, value: NSNumber(value: bitrate))
         VTSessionSetProperty(session, key: kVTCompressionPropertyKey_ExpectedFrameRate, value: NSNumber(value: fps))
-        VTSessionSetProperty(session, key: kVTCompressionPropertyKey_MaxKeyFrameInterval, value: NSNumber(value: fps * 2)) // Keyframe every 2 sec
+        VTSessionSetProperty(session, key: kVTCompressionPropertyKey_MaxKeyFrameInterval, value: NSNumber(value: fps * 2))
 
         VTCompressionSessionPrepareToEncodeFrames(session)
         isConfigured = true
@@ -138,17 +138,26 @@ public final class VideoToolboxEncoder {
     private func handleSampleBuffer(_ sampleBuffer: CMSampleBuffer, flags: VTEncodeInfoFlags) {
         guard let dataBuffer = CMSampleBufferGetDataBuffer(sampleBuffer) else { return }
 
-        let isKeyframe = !CFDictionaryContainsKey(
-            unsafeBitCast(CFArrayGetValueAtIndex(CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false), 0), to: CFDictionary.self),
-            Unmanaged.passUnretained(kCMSampleAttachmentKey_NotSync).toOpaque()
-        )
+        var isKeyframe = true
+        if let attachments = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as? [[CFString: Any]],
+           let firstAttachment = attachments.first,
+           let notSync = firstAttachment[kCMSampleAttachmentKey_NotSync] as? Bool {
+            isKeyframe = !notSync
+        }
 
         var frameData = Data()
 
         // 1. If keyframe, prepend SPS and PPS parameter sets
         if isKeyframe, let formatDesc = CMSampleBufferGetFormatDescription(sampleBuffer) {
-            var paramSetCount = 0
-            CMVideoFormatDescriptionGetH264ParameterSetAtIndex(formatDesc, parameterSetIndex: 0, parameterSetPointerOut: nil, parameterSetSizeOut: nil, parameterSetCountOut: &paramSetCount, nalUnitHeaderLengthOut: nil)
+            var paramSetCount: Int = 0
+            CMVideoFormatDescriptionGetH264ParameterSetAtIndex(
+                formatDesc,
+                parameterSetIndex: 0,
+                parameterSetPointerOut: nil,
+                parameterSetSizeOut: nil,
+                parameterSetCountOut: &paramSetCount,
+                nalUnitHeaderLengthOut: nil
+            )
 
             for i in 0..<paramSetCount {
                 var paramPointer: UnsafePointer<UInt8>?
@@ -172,28 +181,37 @@ public final class VideoToolboxEncoder {
         // 2. Convert AVCC length-prefixed NAL units into Annex-B start-code format
         var totalLength: Int = 0
         var dataPointer: UnsafeMutablePointer<Int8>?
-        CMBlockBufferGetDataPointer(dataBuffer, atOffset: 0, lengthAtOffsetOut: nil, totalLengthOut: &totalLength, dataPointerOut: &dataPointer)
+        let blockStatus = CMBlockBufferGetDataPointer(
+            dataBuffer,
+            atOffset: 0,
+            lengthAtOffsetOut: nil,
+            totalLengthOut: &totalLength,
+            dataPointerOut: &dataPointer
+        )
 
-        if let dataPointer = dataPointer {
+        if blockStatus == noErr, let dataPointer = dataPointer {
             var bufferOffset = 0
-            let avccHeaderLength = 4 // Standard 4-byte NAL length prefix in AVCC
+            let avccHeaderLength = 4
 
             while bufferOffset < totalLength - avccHeaderLength {
                 var nalUnitLength: UInt32 = 0
                 memcpy(&nalUnitLength, dataPointer + bufferOffset, avccHeaderLength)
                 nalUnitLength = CFSwapInt32BigToHost(nalUnitLength)
 
-                frameData.append(VideoToolboxEncoder.startCode)
-                frameData.append(UnsafeRawPointer(dataPointer + bufferOffset + avccHeaderLength), count: Int(nalUnitLength))
+                let nalLen = Int(nalUnitLength)
+                guard bufferOffset + avccHeaderLength + nalLen <= totalLength else { break }
 
-                bufferOffset += avccHeaderLength + Int(nalUnitLength)
+                frameData.append(VideoToolboxEncoder.startCode)
+                frameData.append(UnsafeRawPointer(dataPointer + bufferOffset + avccHeaderLength), count: nalLen)
+
+                bufferOffset += avccHeaderLength + nalLen
             }
         }
 
         // 3. Push to FIFO frame queue
         queueLock.lock()
         if encodedFrames.count >= maxQueuedFrames {
-            encodedFrames.removeFirst() // Drop oldest frame if network is congested
+            encodedFrames.removeFirst()
         }
         encodedFrames.append(frameData)
         queueLock.unlock()
