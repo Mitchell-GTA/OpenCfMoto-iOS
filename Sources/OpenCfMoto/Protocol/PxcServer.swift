@@ -225,14 +225,14 @@ public final class PxcServer {
 
             // Reply RLY_CONFIG_CAPTURE (17): encoder(i32=2) | w(s16) | h(s16) | ext(byte=0)
             var rlyBody = Data(capacity: 9)
-            var enc: Int32 = 2.littleEndian
+            var enc = Int32(2).littleEndian
             var nw = Int16(negotiatedWidth).littleEndian
             var nh = Int16(negotiatedHeight).littleEndian
             var ext: UInt8 = 0
 
-            rlyBody.append(UnsafeBufferPointer(start: &enc, count: 1))
-            rlyBody.append(UnsafeBufferPointer(start: &nw, count: 1))
-            rlyBody.append(UnsafeBufferPointer(start: &nh, count: 1))
+            withUnsafeBytes(of: &enc) { rlyBody.append(contentsOf: $0) }
+            withUnsafeBytes(of: &nw) { rlyBody.append(contentsOf: $0) }
+            withUnsafeBytes(of: &nh) { rlyBody.append(contentsOf: $0) }
             rlyBody.append(&ext, count: 1)
 
             sendReqFrame(PxcReqFrame(cmdType: PxcConstants.rlyRvConfigCapture, token: req.token, body: rlyBody), on: connection)
@@ -240,10 +240,10 @@ public final class PxcServer {
 
         case PxcConstants.reqGetVersion:
             var vBody = Data(capacity: 8)
-            var v: Int32 = 3.littleEndian
-            var sub: Int32 = 1.littleEndian
-            vBody.append(UnsafeBufferPointer(start: &v, count: 1))
-            vBody.append(UnsafeBufferPointer(start: &sub, count: 1))
+            var v = Int32(3).littleEndian
+            var sub = Int32(1).littleEndian
+            withUnsafeBytes(of: &v) { vBody.append(contentsOf: $0) }
+            withUnsafeBytes(of: &sub) { vBody.append(contentsOf: $0) }
             sendReqFrame(PxcReqFrame(cmdType: PxcConstants.rlyGetVersion, token: req.token, body: vBody), on: connection)
 
         case PxcConstants.reqHeartbeat:
@@ -297,7 +297,7 @@ public final class PxcServer {
     private func sendRawH264Frame(_ frame: Data, on connection: NWConnection) {
         var sizeData = Data(capacity: 4)
         var sizeLE = Int32(frame.count).littleEndian
-        sizeData.append(UnsafeBufferPointer(start: &sizeLE, count: 1))
+        withUnsafeBytes(of: &sizeLE) { sizeData.append(contentsOf: $0) }
 
         var payload = Data(capacity: 4 + frame.count)
         payload.append(sizeData)

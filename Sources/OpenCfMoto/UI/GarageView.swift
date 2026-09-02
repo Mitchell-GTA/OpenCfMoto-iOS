@@ -95,7 +95,9 @@ public struct GarageView: View {
                 }
             }
             .navigationTitle("Garaje")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
         }
     }
 }

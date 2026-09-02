@@ -154,14 +154,25 @@ public struct QRScannerView: View {
                 .padding(.top)
             }
             .navigationTitle("Escanear Moto")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancelar") {
                         presentationMode.wrappedValue.dismiss()
                     }
                     .foregroundColor(.cyan)
                 }
+                #else
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                    .foregroundColor(.cyan)
+                }
+                #endif
             }
             .onChange(of: scannedCode) { newCode in
                 handleQrString(newCode)

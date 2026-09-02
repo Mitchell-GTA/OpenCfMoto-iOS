@@ -202,7 +202,7 @@ public final class VideoToolboxEncoder {
                 guard bufferOffset + avccHeaderLength + nalLen <= totalLength else { break }
 
                 frameData.append(VideoToolboxEncoder.startCode)
-                frameData.append(UnsafeRawPointer(dataPointer + bufferOffset + avccHeaderLength), count: nalLen)
+                frameData.append(Data(bytes: dataPointer + bufferOffset + avccHeaderLength, count: nalLen))
 
                 bufferOffset += avccHeaderLength + nalLen
             }

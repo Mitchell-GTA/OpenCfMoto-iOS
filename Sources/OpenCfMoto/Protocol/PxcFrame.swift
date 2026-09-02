@@ -4,13 +4,7 @@
 import Foundation
 
 /// 16-byte CmdBaseHead frame used on the PXC control socket (Port 10922 and Probe on 10930).
-/// Layout (Little-Endian):
-///   [0..3]   Int32 cmdType
-///   [4..7]   Int32 totalLen (= 16 + payload.count)
-///   [8..11]  Int32 magic   (= cmdType XOR totalLen)
-///   [12..15] Int32 reserved (= 0)
-///   [16..]   payload bytes
-public struct PxcCmdFrame {
+public struct PxcCmdFrame: Equatable {
     public let cmd: Int32
     public let payload: Data
 
@@ -40,10 +34,11 @@ public struct PxcCmdFrame {
         var magicLE = magic.littleEndian
         var reservedLE = reserved.littleEndian
 
-        data.append(UnsafeBufferPointer(start: &cmdLE, count: 1))
-        data.append(UnsafeBufferPointer(start: &totalLenLE, count: 1))
-        data.append(UnsafeBufferPointer(start: &magicLE, count: 1))
-        data.append(UnsafeBufferPointer(start: &reservedLE, count: 1))
+        withUnsafeBytes(of: &cmdLE) { data.append(contentsOf: $0) }
+        withUnsafeBytes(of: &totalLenLE) { data.append(contentsOf: $0) }
+        withUnsafeBytes(of: &magicLE) { data.append(contentsOf: $0) }
+        withUnsafeBytes(of: &reservedLE) { data.append(contentsOf: $0) }
+
         if !payload.isEmpty {
             data.append(payload)
         }
@@ -51,7 +46,6 @@ public struct PxcCmdFrame {
     }
 
     /// Deserializes a CmdBaseHead frame from an input buffer.
-    /// Returns the parsed frame and the number of consumed bytes, or nil if more bytes are needed.
     public static func parse(from buffer: Data) throws -> (frame: PxcCmdFrame, consumedBytes: Int)? {
         guard buffer.count >= 16 else { return nil }
 
@@ -69,7 +63,7 @@ public struct PxcCmdFrame {
         }
 
         guard buffer.count >= Int(totalLen) else {
-            return nil // Incomplete frame, wait for more data
+            return nil
         }
 
         let payload = buffer.subdata(in: 16..<Int(totalLen))
@@ -78,12 +72,7 @@ public struct PxcCmdFrame {
 }
 
 /// 8-byte ReqBase frame used on the media control socket (Port 10921) and media data (Port 10920).
-/// Layout (Little-Endian):
-///   [0..1] Int16 cmdType
-///   [2..3] UInt16 cmdLen (= body.count)
-///   [4..7] Int32 token
-///   [8..]  body bytes
-public struct PxcReqFrame {
+public struct PxcReqFrame: Equatable {
     public let cmdType: Int16
     public let token: Int32
     public let body: Data
@@ -100,9 +89,10 @@ public struct PxcReqFrame {
         var cmdLenLE = UInt16(body.count).littleEndian
         var tokenLE = token.littleEndian
 
-        data.append(UnsafeBufferPointer(start: &cmdTypeLE, count: 1))
-        data.append(UnsafeBufferPointer(start: &cmdLenLE, count: 1))
-        data.append(UnsafeBufferPointer(start: &tokenLE, count: 1))
+        withUnsafeBytes(of: &cmdTypeLE) { data.append(contentsOf: $0) }
+        withUnsafeBytes(of: &cmdLenLE) { data.append(contentsOf: $0) }
+        withUnsafeBytes(of: &tokenLE) { data.append(contentsOf: $0) }
+
         if !body.isEmpty {
             data.append(body)
         }
@@ -118,7 +108,7 @@ public struct PxcReqFrame {
 
         let totalLen = 8 + cmdLen
         guard buffer.count >= totalLen else {
-            return nil // Incomplete frame
+            return nil
         }
 
         let body = cmdLen > 0 ? buffer.subdata(in: 8..<totalLen) : Data()

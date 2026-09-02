@@ -155,7 +155,9 @@ public struct MainDashboardView: View {
                 }
             }
             .navigationTitle("OpenCfMoto")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .sheet(isPresented: $isShowingScanner) {
                 QRScannerView { qrData in
                     viewModel.startNavigationSession(qrUrlString: nil, gatewayIp: "192.168.0.1")

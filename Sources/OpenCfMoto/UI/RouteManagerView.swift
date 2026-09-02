@@ -121,7 +121,9 @@ public struct RouteManagerView: View {
                 }
             }
             .navigationTitle("Rutas y GPX")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .fileImporter(
                 isPresented: $isShowingFilePicker,
                 allowedContentTypes: [.xml, UTType(filenameExtension: "gpx") ?? .data],
