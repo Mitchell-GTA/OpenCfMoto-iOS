@@ -1,0 +1,42 @@
+name: Build & Test iOS (OpenCfMoto-iOS)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Compilar y Testear en Mac (GitHub Cloud)
+    runs-on: macos-14
+
+    steps:
+      - name: Descargar Código del Repositorio
+        uses: actions/checkout@v4
+
+      - name: Seleccionar Versión de Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode_15.4.app || sudo xcode-select -s /Applications/Xcode_16.0.app || true
+          xcodebuild -version
+          swift --version
+
+      - name: Ejecutar Tests Unitarios del Protocolo PXC
+        run: swift test
+
+      - name: Compilar Paquete para iOS / macOS
+        run: swift build -c release
+
+      - name: Empaquetar Artefactos de Compilación
+        run: |
+          mkdir -p build_output
+          cp -R .build/release/* build_output/ 2>/dev/null || true
+          zip -r OpenCfMoto-iOS-Build.zip build_output Sources
+
+      - name: Subir Archivo Compilado (.zip)
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenCfMoto-iOS-Artifacts
+          path: OpenCfMoto-iOS-Build.zip
+          retention-days: 14
