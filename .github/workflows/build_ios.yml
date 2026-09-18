@@ -25,18 +25,14 @@ jobs:
       - name: Ejecutar Tests Unitarios del Protocolo PXC
         run: swift test
 
-      - name: Compilar Paquete para iOS / macOS
-        run: swift build -c release
-
-      - name: Empaquetar Artefactos de Compilación
+      - name: Compilar y Generar Instalable IPA (.ipa)
         run: |
-          mkdir -p build_output
-          cp -R .build/release/* build_output/ 2>/dev/null || true
-          zip -r OpenCfMoto-iOS-Build.zip build_output Sources
+          chmod +x tools/build_ipa.sh
+          ./tools/build_ipa.sh
 
-      - name: Subir Archivo Compilado (.zip)
+      - name: Subir Instalable IPA a GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: OpenCfMoto-iOS-Artifacts
-          path: OpenCfMoto-iOS-Build.zip
-          retention-days: 14
+          name: OpenCfMoto-iOS-IPA
+          path: OpenCfMoto.ipa
+          retention-days: 30

@@ -16,24 +16,25 @@ xcodebuild build \
   -project OpenCfMoto.xcodeproj \
   -scheme OpenCfMoto \
   -configuration Release \
+  -sdk iphoneos \
   -destination 'generic/platform=iOS' \
   -derivedDataPath ./build \
-  -disableAutomaticPackageResolution \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
   CODE_SIGN_IDENTITY=""
 
-APP_PATH="./build/Build/Products/Release-iphoneos/OpenCfMoto.app"
+APP_PATH=$(find ./build/Build/Products -name "OpenCfMoto.app" -type d | head -n 1)
 
-if [ ! -d "$APP_PATH" ]; then
-  echo "❌ Error: No se encontró el bundle $APP_PATH"
+if [ -z "$APP_PATH" ] || [ ! -d "$APP_PATH" ]; then
+  echo "❌ Error: No se encontró el bundle OpenCfMoto.app en ./build"
   exit 1
 fi
 
+echo "==> Bundle encontrado en: $APP_PATH"
 echo "==> Empaquetando Payload en OpenCfMoto.ipa..."
 mkdir -p Payload
 cp -R "$APP_PATH" Payload/
-zip -r -q OpenCfMoto.ipa Payload
+zip -r -q -y OpenCfMoto.ipa Payload
 rm -rf Payload
 
 echo ""

@@ -4,10 +4,17 @@
 .build/
 .swiftpm/
 Packages
-xcuserdata/
-*.xcodeproj
-*.xcworkspace
 DerivedData/
+build/
+
+# Xcode Project User Data (only ignore user-specific settings)
+xcuserdata/
+*.xcuserdatad/
+*.xcscmblueprint
+
+# Distribution & Binaries
+*.ipa
+Payload/
 
 # Testing & Tools
 __pycache__/
