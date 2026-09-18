@@ -47,8 +47,10 @@ public final class DashHUDViewModel: NSObject, ObservableObject, CLLocationManag
         locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         #if os(iOS)
         locationManager.pausesLocationUpdatesAutomatically = false
-        #endif
         locationManager.requestWhenInUseAuthorization()
+        #else
+        locationManager.requestAlwaysAuthorization()
+        #endif
     }
 
     // MARK: - Actions

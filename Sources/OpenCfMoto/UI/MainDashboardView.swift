@@ -37,7 +37,7 @@ public struct MainDashboardView: View {
                                 Spacer()
                                 if viewModel.isStreaming {
                                     Label("En Vivo", systemImage: "antenna.radiowaves.left.and.right")
-                                        .font(.caption.bold())
+                                        .font(.caption.weight(.bold))
                                         .foregroundColor(.green)
                                 }
                             }
@@ -114,7 +114,7 @@ public struct MainDashboardView: View {
                         // 4. Quick Simulator / Demo Controls
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Simulador de Telemetría (Demo)")
-                                .font(.caption.bold())
+                                .font(.caption.weight(.bold))
                                 .foregroundColor(.gray)
 
                             HStack(spacing: 12) {

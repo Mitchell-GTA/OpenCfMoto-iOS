@@ -1,4 +1,4 @@
-// swift-tools-version: 5.5
+// swift-tools-version: 5.9
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import PackageDescription
@@ -7,16 +7,12 @@ let package = Package(
     name: "OpenCfMoto",
     platforms: [
         .iOS(.v15),
-        .macOS(.v12)
+        .macOS(.v13)
     ],
     products: [
         .library(
             name: "OpenCfMoto",
             targets: ["OpenCfMoto"]  
-        ),
-        .executable(
-            name: "OpenCfMotoApp",
-            targets: ["OpenCfMotoApp"]
         ),
     ],
     dependencies: [
@@ -27,11 +23,6 @@ let package = Package(
             name: "OpenCfMoto",
             dependencies: [],
             path: "Sources/OpenCfMoto"
-        ),
-        .executableTarget(
-            name: "OpenCfMotoApp",
-            dependencies: ["OpenCfMoto"],
-            path: "Sources/OpenCfMotoApp"
         ),
         .testTarget(
             name: "OpenCfMotoTests",

@@ -3,11 +3,5 @@
 
 import SwiftUI
 
-#if swift(<5.7)
-extension Font {
-    /// Compatibility fallback for older Swift toolchains (Swift < 5.7)
-    public func bold() -> Font {
-        return self
-    }
-}
-#endif
+// Universal compatibility layer for SwiftUI across iOS 15+ and macOS 13+
+// Font styling uses .weight(.bold) across all UI views for universal compatibility.

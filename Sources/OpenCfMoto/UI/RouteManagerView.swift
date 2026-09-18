@@ -71,7 +71,7 @@ public struct RouteManagerView: View {
                                         Image(systemName: "plus.circle.fill")
                                         Text("Importar GPX")
                                     }
-                                    .font(.subheadline.bold())
+                                    .font(.subheadline.weight(.bold))
                                     .foregroundColor(.cyan)
                                 }
                             }
@@ -88,7 +88,7 @@ public struct RouteManagerView: View {
                                     Button("Cargar Rutas de Demostración") {
                                         loadDemoRoutes()
                                     }
-                                    .font(.caption.bold())
+                                    .font(.caption.weight(.bold))
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 8)
                                     .background(Color.cyan.opacity(0.15))
@@ -203,7 +203,7 @@ struct TrackCardView: View {
 
             Button(action: onSelect) {
                 Text(isSelected ? "Activa" : "Proyectar")
-                    .font(.caption.bold())
+                    .font(.caption.weight(.bold))
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
                     .background(isSelected ? Color.green : Color.cyan)

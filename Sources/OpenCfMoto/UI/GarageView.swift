@@ -20,7 +20,7 @@ public struct GarageView: View {
                         // Header Banner
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Tu Garaje de Motos")
-                                .font(.title2.bold())
+                                .font(.title2.weight(.bold))
                                 .foregroundColor(.white)
                             Text("Selecciona el perfil de tu moto para adaptar la resolución, orientación y controles de la pantalla.")
                                 .font(.subheadline)
@@ -126,7 +126,7 @@ struct BikeProfileCard: View {
 
                     HStack(spacing: 8) {
                         Text("\(profile.dimensions.width)x\(profile.dimensions.height)")
-                            .font(.caption.bold())
+                            .font(.caption.weight(.bold))
                             .foregroundColor(.cyan)
 
                         Text("•")
