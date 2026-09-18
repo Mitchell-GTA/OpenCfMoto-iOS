@@ -11,6 +11,8 @@ jobs:
   build-and-test:
     name: Compilar y Testear en Mac (GitHub Cloud)
     runs-on: macos-14
+    permissions:
+      contents: write
 
     steps:
       - name: Descargar Código del Repositorio
@@ -40,3 +42,14 @@ jobs:
           name: OpenCfMoto-iOS-IPA
           path: OpenCfMoto.ipa
           retention-days: 30
+
+      - name: Publicar en GitHub Releases (Descarga pública sin iniciar sesión)
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: latest
+          name: "OpenCfMoto iOS (Última versión)"
+          body: "Instalable OpenCfMoto.ipa generado automáticamente por GitHub Actions para iPhone."
+          files: OpenCfMoto.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
