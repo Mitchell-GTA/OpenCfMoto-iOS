@@ -31,6 +31,11 @@ if [ -z "$APP_PATH" ] || [ ! -d "$APP_PATH" ]; then
 fi
 
 echo "==> Bundle encontrado en: $APP_PATH"
+
+echo "==> Generando firma ad-hoc con codesign..."
+codesign --force --deep --sign - "$APP_PATH" || true
+codesign -v "$APP_PATH" || true
+
 echo "==> Empaquetando Payload en OpenCfMoto.ipa..."
 mkdir -p Payload
 cp -R "$APP_PATH" Payload/
