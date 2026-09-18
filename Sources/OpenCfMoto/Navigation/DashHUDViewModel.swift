@@ -46,10 +46,9 @@ public final class DashHUDViewModel: NSObject, ObservableObject, CLLocationManag
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         #if os(iOS)
-        locationManager.allowsBackgroundLocationUpdates = true
         locationManager.pausesLocationUpdatesAutomatically = false
         #endif
-        locationManager.requestAlwaysAuthorization()
+        locationManager.requestWhenInUseAuthorization()
     }
 
     // MARK: - Actions
@@ -61,6 +60,11 @@ public final class DashHUDViewModel: NSObject, ObservableObject, CLLocationManag
 
         encoder.start()
         pxcServer.start(bikeGatewayIp: gatewayIp)
+        #if os(iOS)
+        if Bundle.main.object(forInfoDictionaryKey: "UIBackgroundModes") != nil {
+            locationManager.allowsBackgroundLocationUpdates = true
+        }
+        #endif
         locationManager.startUpdatingLocation()
         #if os(iOS)
         locationManager.startUpdatingHeading()
@@ -75,6 +79,7 @@ public final class DashHUDViewModel: NSObject, ObservableObject, CLLocationManag
         locationManager.stopUpdatingLocation()
         #if os(iOS)
         locationManager.stopUpdatingHeading()
+        locationManager.allowsBackgroundLocationUpdates = false
         #endif
         pxcServer.stop()
         encoder.stop()
